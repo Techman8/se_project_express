@@ -1,4 +1,5 @@
 const ClothingItem = require('../models/clothingItem')
+const { internalserverError, Ok, noContent }= require('../utils/errors')
 
 const createItem = (req, res) => {
   console.log(req)
@@ -10,14 +11,14 @@ const createItem = (req, res) => {
     console.log(item)
     res.send({data:item})
   }).catch((e) => {
-    res.status(500).send({message: 'Error from createItem', e})
+    res.status(internalserverError).send({message: 'Error from createItem', e})
   });
 }
 
   const getItems = (req, res) => {
-    ClothingItem.find({}).then((items) => res.status(200).send(items))
+    ClothingItem.find({}).then((items) => res.status(Ok).send(items))
     .catch((e) => {
-      res.status(500).send({message: "Error from getItems", e})
+      res.status(internalserverError).send({message: "Error from getItems", e})
     })
   }
 
@@ -27,16 +28,16 @@ const createItem = (req, res) => {
 
     ClothingItem.findByIdAndUpdate(itemId, {$set: {imageURL}}).orFail().then((item) => res.status(200).send({data:item}))
     .catch((e) => {
-      res.status(500).send({message: "Error from updateItem", e})})
+      res.status(internalserverError).send({message: "Error from updateItem", e})})
   }
 
   const deleteItem = (req, res) => {
     const { itemId } = req.params;
 
     console.log(itemId);
-    ClothingItem.findByIdAndDelete(itemId).orFail().then(() => res.status(204).send({}))
+    ClothingItem.findByIdAndDelete(itemId).orFail().then(() => res.status(noContent).send({}))
     .catch((e) => {
-      res.status(500).send({message: "Error from deleteItem", e})})
+      res.status(internalserverError).send({message: "Error from deleteItem", e})})
   }
 
   module.exports = {
