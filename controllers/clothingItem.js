@@ -1,48 +1,142 @@
-const ClothingItem = require('../models/clothingItem')
-const { internalserverError, Ok, noContent }= require('../utils/errors')
+const ClothingItem = require("../models/clothingItem");
+const {
+  internalserverError,
+  Ok,
+  badRequest,
+  notFound,
+  Created,
+} = require("../utils/errors");
 
 const createItem = (req, res) => {
-  console.log(req)
-  console.log(req.body)
+  console.log(req);
+  console.log(req.body);
 
-  const {name, weather, imageURL} = req.body;
+  const { name, weather, imageUrl } = req.body;
 
-  ClothingItem.create({name,weather, imageURL}).then((item) => {
-    console.log(item)
-    res.send({data:item})
-  }).catch((e) => {
-    res.status(internalserverError).send({message: 'Error from createItem', e})
-  });
-}
-
-  const getItems = (req, res) => {
-    ClothingItem.find({}).then((items) => res.status(Ok).send(items))
-    .catch((e) => {
-      res.status(internalserverError).send({message: "Error from getItems", e})
+  ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
+    .then((item) => {
+      console.log(item);
+      res.status(Created).json({ data: item });
     })
-  }
+    .catch((err) => {
+      console.error(err);
+      return res
+        .status(internalserverError)
+        .json({ message: "An error occurred on the server" });
+    });
+};
 
-  const updateItem = (req, res) => {
-    const {itemId} = req.params;
-    const {imageURL} = req.body;
+const getItems = (req, res) => {
+  ClothingItem.find({})
+    .then((items) => res.status(Ok).json({ data: items }))
+    .catch((err) => {
+      console.error(err);
+      return res
+        .status(internalserverError)
+        .json({ message: "An error occurred on the server" });
+    });
+};
 
-    ClothingItem.findByIdAndUpdate(itemId, {$set: {imageURL}}).orFail().then((item) => res.status(200).send({data:item}))
-    .catch((e) => {
-      res.status(internalserverError).send({message: "Error from updateItem", e})})
-  }
+const updateItem = (req, res) => {
+  const { itemId } = req.params;
+  const { imageUrl } = req.body;
 
-  const deleteItem = (req, res) => {
-    const { itemId } = req.params;
+  ClothingItem.findByIdAndUpdate(itemId, { $set: { imageUrl } })
+    .orFail()
+    .then((item) => res.status(Ok).json({ data: item }))
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
+        return res
+          .status(notFound)
+          .json({ message: "Requested resource not found" });
+      }
+      if (err.name === "CastError") {
+        return res
+          .status(badRequest)
+          .json({ message: "Invalid request parameters" });
+      }
+      return res
+        .status(internalserverError)
+        .json({ message: "An error occurred on the server" });
+    });
+};
 
-    console.log(itemId);
-    ClothingItem.findByIdAndDelete(itemId).orFail().then(() => res.status(noContent).send({}))
-    .catch((e) => {
-      res.status(internalserverError).send({message: "Error from deleteItem", e})})
-  }
+const deleteItem = (req, res) => {
+  const { itemId } = req.params;
 
-  module.exports = {
-    createItem,
-    getItems,
-    updateItem,
-    deleteItem,
-  }
+  console.log(itemId);
+  ClothingItem.findByIdAndDelete(itemId)
+    .orFail()
+    .then(() =>
+      res.status(Ok).json({ message: "Item has been successfully deleted" })
+    )
+    .catch((err) => {
+      console.error(err);
+      if (err.name === "DocumentNotFoundError") {
+        return res
+          .status(notFound)
+          .json({ message: "Requested resource not found" });
+      }
+      if (err.name === "CastError") {
+        return res
+          .status(badRequest)
+          .json({ message: "Invalid request parameters" });
+      }
+
+      return res
+        .status(internalserverError)
+        .json({ message: "An error occurred on the server" });
+    });
+};
+const likeItem = (req, res) => {
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true }
+  )
+    .then((item) => {
+      if (!item) {
+        return res
+          .status(notFound)
+          .json({ message: "Requested resource not found" });
+      }
+      return res.json({ data: item });
+    })
+    .catch((err) => {
+      console.error(err);
+      res
+        .status(internalserverError)
+        .json({ message: "An error occurred on the server" });
+    });
+};
+const dislikeItem = (req, res) => {
+  ClothingItem.findByIdAndUpdate(
+    req.params.itemId,
+    { $pull: { likes: req.user._id } },
+    { new: true }
+  )
+    .then((item) => {
+      if (!item) {
+        return res
+          .status(notFound)
+          .json({ message: "Requested resource not found" });
+      }
+      return res.send({ data: item });
+    })
+    .catch((err) => {
+      console.error(err);
+      res
+        .status(internalserverError)
+        .json({ message: "An error occurred on the server" });
+    });
+};
+
+module.exports = {
+  createItem,
+  getItems,
+  updateItem,
+  deleteItem,
+  likeItem,
+  dislikeItem,
+};
