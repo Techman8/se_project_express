@@ -1,10 +1,10 @@
 const ClothingItem = require("../models/clothingItem");
 const {
-  internalserverError,
-  Ok,
-  badRequest,
-  notFound,
-  Created,
+  INTERNAL_SERVER_ERROR,
+  OK,
+  BAD_REQUEST,
+  NOT_FOUND,
+  CREATED,
 } = require("../utils/errors");
 
 const createItem = (req, res) => {
@@ -16,23 +16,23 @@ const createItem = (req, res) => {
   ClothingItem.create({ name, weather, imageUrl, owner: req.user._id })
     .then((item) => {
       console.log(item);
-      res.status(Created).json({ data: item });
+      res.status(CREATED).json({ data: item });
     })
     .catch((err) => {
       console.error(err);
       return res
-        .status(internalserverError)
+        .status(INTERNAL_SERVER_ERROR)
         .json({ message: "An error occurred on the server" });
     });
 };
 
 const getItems = (req, res) => {
   ClothingItem.find({})
-    .then((items) => res.status(Ok).json({ data: items }))
+    .then((items) => res.status(OK).json({ data: items }))
     .catch((err) => {
       console.error(err);
       return res
-        .status(internalserverError)
+        .status(INTERNAL_SERVER_ERROR)
         .json({ message: "An error occurred on the server" });
     });
 };
@@ -43,21 +43,21 @@ const updateItem = (req, res) => {
 
   ClothingItem.findByIdAndUpdate(itemId, { $set: { imageUrl } })
     .orFail()
-    .then((item) => res.status(Ok).json({ data: item }))
+    .then((item) => res.status(OK).json({ data: item }))
     .catch((err) => {
       console.error(err);
-      if (err.name === "DocumentNotFoundError") {
+      if (err.name === "DocumentNOT_FOUNDError") {
         return res
-          .status(notFound)
+          .status(NOT_FOUND)
           .json({ message: "Requested resource not found" });
       }
       if (err.name === "CastError") {
         return res
-          .status(badRequest)
+          .status(BAD_REQUEST)
           .json({ message: "Invalid request parameters" });
       }
       return res
-        .status(internalserverError)
+        .status(INTERNAL_SERVER_ERROR)
         .json({ message: "An error occurred on the server" });
     });
 };
@@ -69,23 +69,23 @@ const deleteItem = (req, res) => {
   ClothingItem.findByIdAndDelete(itemId)
     .orFail()
     .then(() =>
-      res.status(Ok).json({ message: "Item has been successfully deleted" })
+      res.status(OK).json({ message: "Item has been successfully deleted" })
     )
     .catch((err) => {
       console.error(err);
-      if (err.name === "DocumentNotFoundError") {
+      if (err.name === "DocumentNOT_FOUNDError") {
         return res
-          .status(notFound)
+          .status(NOT_FOUND)
           .json({ message: "Requested resource not found" });
       }
       if (err.name === "CastError") {
         return res
-          .status(badRequest)
+          .status(BAD_REQUEST)
           .json({ message: "Invalid request parameters" });
       }
 
       return res
-        .status(internalserverError)
+        .status(INTERNAL_SERVER_ERROR)
         .json({ message: "An error occurred on the server" });
     });
 };
@@ -98,7 +98,7 @@ const likeItem = (req, res) => {
     .then((item) => {
       if (!item) {
         return res
-          .status(notFound)
+          .status(NOT_FOUND)
           .json({ message: "Requested resource not found" });
       }
       return res.json({ data: item });
@@ -106,7 +106,7 @@ const likeItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       res
-        .status(internalserverError)
+        .status(INTERNAL_SERVER_ERROR)
         .json({ message: "An error occurred on the server" });
     });
 };
@@ -119,7 +119,7 @@ const dislikeItem = (req, res) => {
     .then((item) => {
       if (!item) {
         return res
-          .status(notFound)
+          .status(NOT_FOUND)
           .json({ message: "Requested resource not found" });
       }
       return res.send({ data: item });
@@ -127,7 +127,7 @@ const dislikeItem = (req, res) => {
     .catch((err) => {
       console.error(err);
       res
-        .status(internalserverError)
+        .status(INTERNAL_SERVER_ERROR)
         .json({ message: "An error occurred on the server" });
     });
 };

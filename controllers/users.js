@@ -1,19 +1,19 @@
 const User = require("../models/user");
 const {
-  badRequest,
-  notFound,
-  internalserverError,
-  Ok,
-  Created,
+  BAD_REQUEST,
+  NOT_FOUND,
+  INTERNAL_SERVER_ERROR,
+  OK,
+  CREATED,
 } = require("../utils/errors");
 
 const getUsers = (req, res) => {
   User.find({})
-    .then((users) => res.status(Ok).json(users))
+    .then((users) => res.status(OK).json(users))
     .catch((err) => {
       console.error(err);
       return res
-        .status(internalserverError)
+        .status(INTERNAL_SERVER_ERROR)
         .json({ message: "An error occurred on the server" });
     });
 };
@@ -22,16 +22,16 @@ const createUser = (req, res) => {
   const { name, avatar } = req.body;
 
   User.create({ name, avatar })
-    .then((user) => res.status(Created).json(user))
+    .then((user) => res.status(CREATED).json(user))
     .catch((err) => {
       console.error(err);
       if (err.name === "ValidationError") {
         return res
-          .status(badRequest)
+          .status(BAD_REQUEST)
           .json({ message: "Invalid request parameters" });
       }
       return res
-        .status(internalserverError)
+        .status(INTERNAL_SERVER_ERROR)
         .json({ message: "An error occurred on the server" });
     });
 };
@@ -40,21 +40,21 @@ const getUser = (req, res) => {
   const { userId } = req.params;
   User.findById(userId)
     .orFail()
-    .then((user) => res.status(Ok).json(user))
+    .then((user) => res.status(OK).json(user))
     .catch((err) => {
       console.error(err);
-      if (err.name === "DocumentNotFoundError") {
+      if (err.name === "DocumentNOT_FOUNDError") {
         return res
-          .status(notFound)
+          .status(NOT_FOUND)
           .json({ message: "Requested resource not found" });
       }
       if (err.name === "CastError") {
         return res
-          .status(badRequest)
+          .status(BAD_REQUEST)
           .json({ message: "Invalid request parameters" });
       }
       return res
-        .status(internalserverError)
+        .status(INTERNAL_SERVER_ERROR)
         .json({ message: "An error occurred on the server" });
     });
 };
