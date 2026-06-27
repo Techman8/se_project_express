@@ -2,8 +2,8 @@ const ClothingItem = require("../models/clothingItem");
 const {
   INTERNAL_SERVER_ERROR,
   OK,
-  BAD_REQUEST,
   NOT_FOUND,
+  BAD_REQUEST,
   CREATED,
 } = require("../utils/errors");
 

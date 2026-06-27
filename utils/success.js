@@ -3,7 +3,7 @@ const CREATED = 201;
 const NO_CONTENT = 204;
 
 module.exports = {
-   OK,
+  OK,
   CREATED,
   NO_CONTENT,
 };
