@@ -1,12 +1,12 @@
 const ClothingItem = require("../models/clothingItem");
 const {
   INTERNAL_SERVER_ERROR,
-  OK,
   NOT_FOUND,
   BAD_REQUEST,
-  CREATED,
   FORBIDDEN,
 } = require("../utils/errors");
+
+const { OK, CREATED } = require("../utils/success");
 
 const createItem = (req, res) => {
   console.log(req);
@@ -52,7 +52,7 @@ const updateItem = (req, res) => {
           .status(NOT_FOUND)
           .json({ message: "Requested resource not found" });
       }
-      if (err.name === "CastError") {
+      if (err.name === "ValidationError") {
         return res
           .status(BAD_REQUEST)
           .json({ message: "Invalid request parameters" });
@@ -106,49 +106,75 @@ const deleteItem = (req, res) => {
         .json({ message: "An error occurred on the server" });
     });
 };
+// 5. LIKE ITEM CONTROLLER
 const likeItem = (req, res) => {
-  ClothingItem.findByIdAndUpdate(
-    req.params.itemId,
+  const { itemId } = req.params;
+
+  return ClothingItem.findByIdAndUpdate(
+    itemId,
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
-    .then((item) => {
-      if (!item) {
+    .orFail() // Throws DocumentNotFoundError if the item ID doesn't exist
+    .then((item) => res.status(OK).json({ data: item }))
+    .catch((err) => {
+      console.error(err);
+
+      // 1. Handle case where the item doesn't exist in the database
+      if (err.name === "DocumentNotFoundError") {
         return res
           .status(NOT_FOUND)
           .json({ message: "Requested resource not found" });
       }
-      return res.json({ data: item });
-    })
-    .catch((err) => {
-      console.error(err);
-      res
-        .status(INTERNAL_SERVER_ERROR)
-        .json({ message: "An error occurred on the server" });
-    });
-};
-const dislikeItem = (req, res) => {
-  ClothingItem.findByIdAndUpdate(
-    req.params.itemId,
-    { $pull: { likes: req.user._id } },
-    { new: true }
-  )
-    .then((item) => {
-      if (!item) {
+
+      // 2. Handle a malformed or corrupt item ID string in the URL
+      if (err.name === "CastError") {
         return res
-          .status(NOT_FOUND)
-          .json({ message: "Requested resource not found" });
+          .status(BAD_REQUEST)
+          .json({ message: "Invalid request parameters" });
       }
-      return res.send({ data: item });
-    })
-    .catch((err) => {
-      console.error(err);
-      res
+
+      // 3. Fallback for unexpected database errors
+      return res
         .status(INTERNAL_SERVER_ERROR)
         .json({ message: "An error occurred on the server" });
     });
 };
 
+// 6. DISLIKE ITEM CONTROLLER
+const dislikeItem = (req, res) => {
+  const { itemId } = req.params;
+
+  return ClothingItem.findByIdAndUpdate(
+    itemId,
+    { $pull: { likes: req.user._id } },
+    { new: true }
+  )
+    .orFail() // Throws DocumentNotFoundError if the item ID doesn't exist
+    .then((item) => res.status(OK).json({ data: item }))
+    .catch((err) => {
+      console.error(err);
+
+      // 1. Handle case where the item doesn't exist in the database
+      if (err.name === "DocumentNotFoundError") {
+        return res
+          .status(NOT_FOUND)
+          .json({ message: "Requested resource not found" });
+      }
+
+      // 2. Handle a malformed or corrupt item ID string in the URL
+      if (err.name === "CastError") {
+        return res
+          .status(BAD_REQUEST)
+          .json({ message: "Invalid request parameters" });
+      }
+
+      // 3. Fallback for unexpected database errors
+      return res
+        .status(INTERNAL_SERVER_ERROR)
+        .json({ message: "An error occurred on the server" });
+    });
+};
 module.exports = {
   createItem,
   getItems,

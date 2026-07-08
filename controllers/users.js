@@ -6,11 +6,11 @@ const {
   BAD_REQUEST,
   NOT_FOUND,
   INTERNAL_SERVER_ERROR,
-  OK,
-  CREATED,
   CONFLICT,
   UNAUTHORIZED,
 } = require("../utils/errors");
+
+const { OK, CREATED } = require("../utils/success");
 
 // 1. CREATE USER CONTROLLER
 const createUser = (req, res) => {

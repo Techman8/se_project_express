@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { UNAUTHORIZED } = require("../utils/errors");
 
-const JWT_SECRET = process.env.JWT_SECRET || "your_fallback_secret_key";
+const { JWT_SECRET } = require("../utils/config");
 
 const authorize = (req, res, next) => {
   // 1. Exclude public routes from authorization check

@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const cors = require("cors");
 const mainRouter = require("./routes/index"); // Explicit extension for Airbnb linting
 
@@ -13,7 +14,16 @@ app.use(express.json());
 // 2. Route directly to the master router (where public vs protected is sorted out)
 app.use("/", mainRouter);
 
-// 3. Start the server
-app.listen(PORT, () => {
-  console.log(`Server successfully started on port ${PORT}`);
-});
+// Database Connection & Server Activation Sequence
+mongoose
+  .connect("mongodb://127.0.0.1:27017/wtwr_db")
+  .then(() => {
+    console.log("Connected to DB");
+
+    app.listen(PORT, () => {
+      console.log(`Server successfully started on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error("Database connection failed:", err);
+  });
