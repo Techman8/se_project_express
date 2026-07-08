@@ -1,24 +1,19 @@
 const express = require("express");
-const mongoose = require("mongoose");
-const mainRouter = require("./routes/index");
+const cors = require("cors");
+const mainRouter = require("./routes/index"); // Explicit extension for Airbnb linting
 
 const app = express();
-const { PORT = 3001 } = process.env;
+const PORT = process.env.PORT || 3001;
 
-mongoose
-  .connect("mongodb://127.0.0.1:27017/wtwr_db")
-  .then(() => {
-    console.log("Connected to DB");
-  })
-  .catch(console.error);
+app.use(cors());
 
+// 1. Parse incoming JSON payloads
 app.use(express.json());
-app.use((req, res, next) => {
-  req.user = { _id: "6a3b4cfb3fbcb98fc0d72fb0" };
-  next();
-});
+
+// 2. Route directly to the master router (where public vs protected is sorted out)
 app.use("/", mainRouter);
 
+// 3. Start the server
 app.listen(PORT, () => {
   console.log(`Server successfully started on port ${PORT}`);
 });

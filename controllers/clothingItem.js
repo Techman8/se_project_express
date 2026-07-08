@@ -5,6 +5,7 @@ const {
   NOT_FOUND,
   BAD_REQUEST,
   CREATED,
+  FORBIDDEN,
 } = require("../utils/errors");
 
 const createItem = (req, res) => {
@@ -46,7 +47,7 @@ const updateItem = (req, res) => {
     .then((item) => res.status(OK).json({ data: item }))
     .catch((err) => {
       console.error(err);
-      if (err.name === "DocumentNOT_FOUNDError") {
+      if (err.name === "DocumentNotFoundError") {
         return res
           .status(NOT_FOUND)
           .json({ message: "Requested resource not found" });
@@ -64,26 +65,42 @@ const updateItem = (req, res) => {
 
 const deleteItem = (req, res) => {
   const { itemId } = req.params;
+  const currentUserId = req.user._id;
 
-  console.log(itemId);
-  ClothingItem.findByIdAndDelete(itemId)
-    .orFail()
-    .then(() =>
-      res.status(OK).json({ message: "Item has been successfully deleted" })
-    )
+  // Step 1: Just find the item first
+  return ClothingItem.findById(itemId)
+    .orFail() // Throws DocumentNotFoundError if the card doesn't exist
+    .then((item) => {
+      // Step 2: Check if the current user actually owns this item
+      if (item.owner.toString() !== currentUserId.toString()) {
+        // Step 3a: If they don't match, block the deletion with a 403
+        return res
+          .status(FORBIDDEN)
+          .json({ message: "You are not authorized to delete this item" });
+      }
+
+      // Step 3b: If they DO match, safely proceed with the deletion
+      return ClothingItem.findByIdAndDelete(itemId).then(() =>
+        res.status(OK).json({ message: "Item has been successfully deleted" })
+      );
+    })
     .catch((err) => {
       console.error(err);
-      if (err.name === "DocumentNOT_FOUNDError") {
+      // 1. Handle case where the item doesn't exist
+      if (err.name === "DocumentNotFoundError") {
         return res
           .status(NOT_FOUND)
-          .json({ message: "Requested resource not found" });
+          .json({ message: "Requested item not found" });
       }
+
+      // 2. Handle a malformed or corrupt item ID string
       if (err.name === "CastError") {
         return res
           .status(BAD_REQUEST)
-          .json({ message: "Invalid request parameters" });
+          .json({ message: "Invalid item ID parameters" });
       }
 
+      // 3. Fallback for unexpected database errors
       return res
         .status(INTERNAL_SERVER_ERROR)
         .json({ message: "An error occurred on the server" });
