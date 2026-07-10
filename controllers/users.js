@@ -33,7 +33,6 @@ const createUser = (req, res) => {
       return res.status(CREATED).json(userResponse);
     })
     .catch((err) => {
-      console.error(err);
       if (err.code === 11000) {
         return res.status(CONFLICT).json({ message: "Email already exists" });
       }
@@ -66,7 +65,6 @@ const login = (req, res) => {
       res.status(OK).json({ token });
     })
     .catch((err) => {
-      console.error(err);
       if (err.message === "Incorrect email or password") {
         return res
           .status(UNAUTHORIZED)
@@ -86,7 +84,6 @@ const getCurrentUser = (req, res) => {
     .orFail()
     .then((user) => res.status(OK).json(user)) // Relies cleanly on schema select: false
     .catch((err) => {
-      console.error(err);
       if (err.name === "DocumentNotFoundError") {
         return res
           .status(NOT_FOUND)
@@ -111,7 +108,6 @@ const updateProfile = (req, res) => {
     .orFail()
     .then((updatedUser) => res.status(OK).json(updatedUser)) // Relies cleanly on schema select: false
     .catch((err) => {
-      console.error(err);
       if (err.name === "DocumentNotFoundError") {
         return res
           .status(NOT_FOUND)
