@@ -3,22 +3,20 @@ const bcryptjs = require("bcryptjs");
 const User = require("../models/user");
 const { JWT_SECRET } = require("../utils/config");
 const {
-  BAD_REQUEST,
-  NOT_FOUND,
-  INTERNAL_SERVER_ERROR,
-  CONFLICT,
-  UNAUTHORIZED,
+  BadRequestError,
+  NotFoundError,
+  ConflictError,
+  UnauthorizedError,
 } = require("../utils/errors");
-
 const { OK, CREATED } = require("../utils/success");
 
 // 1. CREATE USER CONTROLLER
-const createUser = (req, res) => {
+const createUser = (req, res, next) => {
   const { name, avatar, email, password } = req.body;
 
-  // 1. Catch missing passwords instantly before hashing
+  // Catch missing passwords instantly before hashing
   if (!password) {
-    return res.status(BAD_REQUEST).json({ message: "Password is required" });
+    return next(new BadRequestError("Password is required"));
   }
 
   return bcryptjs
@@ -34,27 +32,21 @@ const createUser = (req, res) => {
     })
     .catch((err) => {
       if (err.code === 11000) {
-        return res.status(CONFLICT).json({ message: "Email already exists" });
+        next(new ConflictError("Email already exists"));
+      } else if (err.name === "ValidationError") {
+        next(new BadRequestError("Invalid request parameters"));
+      } else {
+        next(err);
       }
-      if (err.name === "ValidationError") {
-        return res
-          .status(BAD_REQUEST)
-          .json({ message: "Invalid request parameters" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .json({ message: "An error occurred on the server" });
     });
 };
 
 // 2. LOGIN CONTROLLER
-const login = (req, res) => {
+const login = (req, res, next) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res
-      .status(BAD_REQUEST)
-      .json({ message: "Email and password are required" });
+    return next(new BadRequestError("Email and password are required"));
   }
 
   return User.findUserByCredentials(email, password)
@@ -66,18 +58,15 @@ const login = (req, res) => {
     })
     .catch((err) => {
       if (err.message === "Incorrect email or password") {
-        return res
-          .status(UNAUTHORIZED)
-          .json({ message: "Incorrect email or password" });
+        next(new UnauthorizedError("Incorrect email or password"));
+      } else {
+        next(err);
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .json({ message: "An error occurred on the server" });
     });
 };
 
 // 3. GET CURRENT USER CONTROLLER
-const getCurrentUser = (req, res) => {
+const getCurrentUser = (req, res, next) => {
   const userId = req.user._id;
 
   User.findById(userId)
@@ -85,18 +74,15 @@ const getCurrentUser = (req, res) => {
     .then((user) => res.status(OK).json(user)) // Relies cleanly on schema select: false
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        return res
-          .status(NOT_FOUND)
-          .json({ message: "Requested user not found" });
+        next(new NotFoundError("Requested user not found"));
+      } else {
+        next(err);
       }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .json({ message: "An error occurred on the server" });
     });
 };
 
 // 4. UPDATE PROFILE CONTROLLER
-const updateProfile = (req, res) => {
+const updateProfile = (req, res, next) => {
   const userId = req.user._id;
   const { name, avatar } = req.body;
 
@@ -109,18 +95,12 @@ const updateProfile = (req, res) => {
     .then((updatedUser) => res.status(OK).json(updatedUser)) // Relies cleanly on schema select: false
     .catch((err) => {
       if (err.name === "DocumentNotFoundError") {
-        return res
-          .status(NOT_FOUND)
-          .json({ message: "Requested user not found" });
+        next(new NotFoundError("Requested user not found"));
+      } else if (err.name === "ValidationError") {
+        next(new BadRequestError("Invalid request parameters"));
+      } else {
+        next(err);
       }
-      if (err.name === "ValidationError") {
-        return res
-          .status(BAD_REQUEST)
-          .json({ message: "Invalid request parameters" });
-      }
-      return res
-        .status(INTERNAL_SERVER_ERROR)
-        .json({ message: "An error occurred on the server" });
     });
 };
 
