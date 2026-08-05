@@ -18,6 +18,12 @@ app.use(express.json());
 // 2. Request logger MUST be attached before all routes
 app.use(requestLogger);
 
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Server will crash now');
+  }, 0);
+});
+
 // 2. Route directly to the master router (where public vs protected is sorted out)
 app.use("/", mainRouter);
 
