@@ -16,5 +16,13 @@ Node.js / Express: Core framework used to build the server architecture and mana
  Check out [this video](https://www.loom.com/share/16bb72bbd6334067ad1d553e731b1cda), where I describe my 
  project and some challenges I faced while building it.
 
+ ## Frontend Repository
+
+[https://github.com/Techman8/se_project_react](https://github.com/Techman8/se_project_react)
+
+## Project Domain Name
+
+ api.wtwr.happyminecraft.org;
+
 Engineering approaches
 REST API Architecture: Clean, stateless HTTP endpoints (/users, /items) to handle profile management and wardrobe requests. Data Categorization Logic: Database schemas structured to filter clothing items based on temperature ranges and weather conditions. Security & Validation: Centralized error handling and custom middleware to protect private user data and restrict unauthorized actions. Cloud Deployment: Hosted on a remote machine (VPS) to provide a live, reliable API for the client application.
