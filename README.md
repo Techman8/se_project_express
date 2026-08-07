@@ -11,9 +11,14 @@ Through the client interface powered by this backend, users can: Get Weather-Bas
 Technologies and Techniques
 Node.js / Express: Core framework used to build the server architecture and manage the REST API routing.MongoDB / Mongoose: NoSQL database and Object Data Modeling library used to store and validate user accounts and weather-categorized clothing schemas. JSON Web Tokens (JWT): Utilized for token-based user authentication and route authorization. bcryptjs: Implemented for hashing and securely storing user passwords.
 
-## Project Pitch Video
+## Project Pitch Video 13
  
  Check out [this video](https://www.loom.com/share/16bb72bbd6334067ad1d553e731b1cda), where I describe my 
+ project and some challenges I faced while building it.
+
+## Project Pitch Video 15
+
+ Check out [this video](https://www.loom.com/share/8dd46c50fe454490bfd1596ff5545666), where I describe my 
  project and some challenges I faced while building it.
 
  ## Frontend Repository
