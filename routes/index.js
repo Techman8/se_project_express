@@ -4,7 +4,7 @@ const userRouter = require("./users");
 const authorize = require("../middlewares/auth");
 const { login, createUser } = require("../controllers/users");
 const { getItems } = require("../controllers/clothingItem");
-const { NOT_FOUND } = require("../utils/errors");
+const { NotFoundError } = require("../utils/errors");
 
 // ==========================================
 // 1. PUBLIC LOBBY (No token needed)
@@ -25,8 +25,8 @@ router.use("/users", userRouter);
 router.use("/items", clothingItem);
 
 // Catch-all handler for unknown pages
-router.use((req, res) => {
-  res.status(NOT_FOUND).send({ message: "Requested resource not found" });
+router.use((req, res, next) => {
+   next(new NotFoundError("Requested resource not found"));
 });
 
 module.exports = router;
