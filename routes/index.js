@@ -13,6 +13,10 @@ router.post("/signin", login);
 router.post("/signup", createUser);
 router.get("/items", getItems);
 
+router.all("/", (req, res, next) => {
+  next(new NotFoundError("Requested resource not found"));
+});
+
 // ==========================================
 // 2. THE SECURITY GATE
 // ==========================================

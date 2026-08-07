@@ -2,6 +2,8 @@ const express = require("express");
 const { errors } = require("celebrate");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const helmet = require('helmet');
+const limiter = require('./middlewares/rate-limiter');
 require('dotenv').config();
 const errorHandler = require('./middlewares/error-handler');
 const { requestLogger, errorLogger } = require("./middlewares/logger");
@@ -11,6 +13,7 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 app.use(cors());
+app.use(helmet());
 
 // 1. Parse incoming JSON payloads
 app.use(express.json());
@@ -23,6 +26,8 @@ app.get('/crash-test', () => {
     throw new Error('Server will crash now');
   }, 0);
 });
+
+app.use(limiter);
 
 // 2. Route directly to the master router (where public vs protected is sorted out)
 app.use("/", mainRouter);
